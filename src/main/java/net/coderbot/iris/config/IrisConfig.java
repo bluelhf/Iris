@@ -3,9 +3,12 @@ package net.coderbot.iris.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.util.Identifier;
 
 /**
  * A class dedicated to storing the config values of shaderpacks. Right now it only stores the path to the current shaderpack
@@ -18,7 +21,13 @@ public class IrisConfig {
 	 * The path to the current shaderpack. Null if the internal shaderpack is being used.
 	 */
 	private String shaderPackName;
-	private Path propertiesPath;
+
+	/**
+	 * For legacy shader pack support, this maps dimension Identifiers to legacy raw ids defined in shaders
+	 */
+	private final Map<Identifier, Integer> dimensionOverrides = new HashMap<>();
+
+	private final Path propertiesPath;
 
 	public IrisConfig() {
 		shaderPackName = null;
@@ -76,6 +85,20 @@ public class IrisConfig {
 
 		if (shaderPackName != null && shaderPackName.equals("(internal)")) {
 			shaderPackName = null;
+		}
+
+		this.dimensionOverrides.clear();
+		for(String s : properties.stringPropertyNames()) {
+			if(s.startsWith("dimension.")) {
+				s = s.replace("dimension.", "");
+				Identifier id = Identifier.tryParse(s);
+				if(id != null) {
+					try {
+						int r = Integer.parseInt(properties.getProperty(s));
+						this.dimensionOverrides.put(id, r);
+					} catch(NumberFormatException ignored) {}
+				}
+			}
 		}
 	}
 
