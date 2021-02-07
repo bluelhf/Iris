@@ -4,8 +4,11 @@ import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.ONCE;
 import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import net.coderbot.iris.gl.uniform.UniformHolder;
+import net.coderbot.iris.pipeline.ShaderPipeline;
+import net.coderbot.iris.postprocess.PostProcessUniforms;
 import net.coderbot.iris.shaderpack.IdMap;
 import net.coderbot.iris.texunits.TextureUnit;
 
@@ -32,6 +35,7 @@ public final class CommonUniforms {
 		CelestialUniforms.addCelestialUniforms(uniforms);
 		IdMapUniforms.addIdMapUniforms(uniforms, idMap);
 		MatrixUniforms.addMatrixUniforms(uniforms);
+		PostProcessUniforms.addPostProcessUniforms(ShaderPipeline.CURRENT_BUILDER, Optional.empty());
 
 		uniforms
 			.uniform1i(ONCE, "texture", TextureUnit.TERRAIN::getSamplerId)

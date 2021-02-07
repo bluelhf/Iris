@@ -3,6 +3,8 @@ package net.coderbot.iris.postprocess;
 import net.coderbot.iris.gl.program.ProgramBuilder;
 import net.coderbot.iris.gl.uniform.UniformUpdateFrequency;
 
+import java.util.Optional;
+
 public class PostProcessUniforms {
 	public static final int COLOR_TEX_0 = 0;
 	public static final int COLOR_TEX_1 = 1;
@@ -13,6 +15,11 @@ public class PostProcessUniforms {
 	public static final int COLOR_TEX_6 = 9;
 	public static final int COLOR_TEX_7 = 10;
 
+	public static final int SHADOW_TEX_0 = 4;
+	public static final int SHADOW_TEX_1 = 5;
+	public static final int SHADOW_COLOR_0 = 13;
+	public static final int SHADOW_COLOR_1 = 14;
+
 	public static final int DEPTH_TEX_0 = 6;
 	public static final int DEPTH_TEX_1 = 11;
 	public static final int DEPTH_TEX_2 = 12;
@@ -22,7 +29,7 @@ public class PostProcessUniforms {
 	public static final int DEFAULT_COLOR = COLOR_TEX_0;
 	public static final int DEFAULT_DEPTH = DEPTH_TEX_0;
 
-	public static void addPostProcessUniforms(ProgramBuilder builder, CompositeRenderer renderer) {
+	public static void addPostProcessUniforms(ProgramBuilder builder, Optional<CompositeRenderer> renderer) {
 		// TODO: Some of these are shared uniforms
 
 		// Generic samplers
@@ -42,11 +49,12 @@ public class PostProcessUniforms {
 		// Check if the "watershadow" uniform is active. If so, the "shadow" texture will have a separate texture unit
 		boolean waterShadowEnabled = builder.location("watershadow").isPresent();
 
-		addSampler(builder, waterShadowEnabled ? 5 : 4, "shadow");
+		addSampler(builder, waterShadowEnabled ? SHADOW_TEX_1 : SHADOW_TEX_0, "shadow");
 
-		addSampler(builder, 5, "shadowtex1");
-		addSampler(builder, 13, "shadowcolor", "shadowcolor0");
-		addSampler(builder, 14, "shadowcolor1");
+		addSampler(builder, SHADOW_TEX_1, "shadowtex1");
+
+		addSampler(builder, SHADOW_COLOR_0, "shadowcolor", "shadowcolor0");
+		addSampler(builder, SHADOW_COLOR_1, "shadowcolor1");
 
 		// Depth
 		addSampler(builder, DEFAULT_DEPTH, "gdepthtex", "depthtex0");
@@ -56,7 +64,7 @@ public class PostProcessUniforms {
 		// Noise
 		addSampler(builder, NOISE_TEX, "noisetex");
 
-		builder.uniform1f(UniformUpdateFrequency.PER_FRAME, "centerDepthSmooth", renderer.centerDepthSampler::getCenterDepthSmoothSample);
+		renderer.ifPresent(r -> builder.uniform1f(UniformUpdateFrequency.PER_FRAME, "centerDepthSmooth", r.centerDepthSampler::getCenterDepthSmoothSample));
 	}
 
 	private static void addSampler(ProgramBuilder builder, int textureUnit, String... names) {

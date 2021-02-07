@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -27,7 +30,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.GlProgramManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Identifier;
 
 /**
@@ -67,42 +69,50 @@ public class ShaderPipeline {
 	private final Pass glint;
 	@Nullable
 	private final Pass eyes;
+	@Nullable
+	private final Pass shadows;
 
 	private final GlFramebuffer clearAltBuffers;
 	private final GlFramebuffer clearMainBuffers;
 	private final GlFramebuffer baseline;
+	private final GlFramebuffer shadowBuffer;
 
 	private final NoiseTexture noiseTexture;
 	private final int waterId;
+
+	public static ProgramBuilder CURRENT_BUILDER;
 
 	public ShaderPipeline(ShaderPack pack, RenderTargets renderTargets) {
 		this.renderTargets = renderTargets;
 		waterId = pack.getIdMap().getBlockProperties().getOrDefault(new Identifier("minecraft", "water"), -1);
 
-		this.basic = pack.getGbuffersBasic().map(this::createPass).orElse(null);
-		this.textured = pack.getGbuffersTextured().map(this::createPass).orElse(basic);
-		this.texturedLit = pack.getGbuffersTexturedLit().map(this::createPass).orElse(textured);
-		this.skyBasic = pack.getGbuffersSkyBasic().map(this::createPass).orElse(basic);
-		this.skyTextured = pack.getGbuffersSkyTextured().map(this::createPass).orElse(textured);
-		this.clouds = pack.getGbuffersClouds().map(this::createPass).orElse(textured);
-		this.terrain = pack.getGbuffersTerrain().map(this::createPass).orElse(texturedLit);
-		this.translucent = pack.getGbuffersWater().map(this::createPass).orElse(terrain);
-		this.damagedBlock = pack.getGbuffersDamagedBlock().map(this::createPass).orElse(terrain);
+		this.basic = pack.getGbuffersBasic().map(this::createDefaultPass).orElse(null);
+		this.textured = pack.getGbuffersTextured().map(this::createDefaultPass).orElse(basic);
+		this.texturedLit = pack.getGbuffersTexturedLit().map(this::createDefaultPass).orElse(textured);
+		this.skyBasic = pack.getGbuffersSkyBasic().map(this::createDefaultPass).orElse(basic);
+		this.skyTextured = pack.getGbuffersSkyTextured().map(this::createDefaultPass).orElse(textured);
+		this.clouds = pack.getGbuffersClouds().map(this::createDefaultPass).orElse(textured);
+		this.terrain = pack.getGbuffersTerrain().map(this::createDefaultPass).orElse(texturedLit);
+		this.translucent = pack.getGbuffersWater().map(this::createDefaultPass).orElse(terrain);
+		this.damagedBlock = pack.getGbuffersDamagedBlock().map(this::createDefaultPass).orElse(terrain);
 		// TODO: Load weather shaders
 		this.weather = texturedLit;
-		this.beaconBeam = pack.getGbuffersBeaconBeam().map(this::createPass).orElse(textured);
-		this.entities = pack.getGbuffersEntities().map(this::createPass).orElse(texturedLit);
-		this.blockEntities = pack.getGbuffersBlock().map(this::createPass).orElse(terrain);
+		this.beaconBeam = pack.getGbuffersBeaconBeam().map(this::createDefaultPass).orElse(textured);
+		this.entities = pack.getGbuffersEntities().map(this::createDefaultPass).orElse(texturedLit);
+		this.blockEntities = pack.getGbuffersBlock().map(this::createDefaultPass).orElse(terrain);
 		// TODO: Load glowing entities
 		this.glowingEntities = entities;
-		this.glint = pack.getGbuffersGlint().map(this::createPass).orElse(textured);
-		this.eyes = pack.getGbuffersEntityEyes().map(this::createPass).orElse(textured);
+		this.glint = pack.getGbuffersGlint().map(this::createDefaultPass).orElse(textured);
+		this.eyes = pack.getGbuffersEntityEyes().map(this::createDefaultPass).orElse(textured);
+
+		this.shadows = pack.getShadows().map(source -> createPass(source, renderTargets.createShadowFramebuffer(source.getDirectives().getDrawBuffers()))).orElse(texturedLit);
 
 		int[] buffersToBeCleared = pack.getPackDirectives().getBuffersToBeCleared().toIntArray();
 
 		this.clearAltBuffers = renderTargets.createFramebufferWritingToAlt(buffersToBeCleared);
 		this.clearMainBuffers = renderTargets.createFramebufferWritingToMain(buffersToBeCleared);
 		this.baseline = renderTargets.createFramebufferWritingToMain(new int[] {0});
+		this.shadowBuffer = renderTargets.createShadowFramebuffer(new int[] {0});
 
 		this.noiseTexture = new NoiseTexture(128, 128);
 	}
@@ -114,6 +124,9 @@ public class ShaderPipeline {
 		}
 
 		switch (program) {
+			case SHADOW:
+				beginShadows();
+				return;
 			case TERRAIN:
 				//RenderSystem.enableAlphaTest();
 				//RenderSystem.alphaFunc(GL11.GL_GREATER, 0.1f);
@@ -174,7 +187,11 @@ public class ShaderPipeline {
 		}
 	}
 
-	private Pass createPass(ShaderPack.ProgramSource source) {
+	private Pass createDefaultPass(ShaderPack.ProgramSource source) {
+		return createPass(source, renderTargets.createFramebufferWritingToMain(source.getDirectives().getDrawBuffers()));
+	}
+
+	private Pass createPass(ShaderPack.ProgramSource source, GlFramebuffer framebuffer) {
 		// TODO: Properly handle empty shaders
 		Objects.requireNonNull(source.getVertexSource());
 		Objects.requireNonNull(source.getFragmentSource());
@@ -182,14 +199,15 @@ public class ShaderPipeline {
 
 		try {
 			builder = ProgramBuilder.begin(source.getName(), source.getVertexSource().orElse(null),
-				source.getFragmentSource().orElse(null));
+					source.getFragmentSource().orElse(null));
 		} catch (IOException e) {
 			// TODO: Better error handling
 			throw new RuntimeException("Shader compilation failed!", e);
 		}
 
+		CURRENT_BUILDER = builder;
+
 		CommonUniforms.addCommonUniforms(builder, source.getParent().getIdMap());
-		GlFramebuffer framebuffer = renderTargets.createFramebufferWritingToMain(source.getDirectives().getDrawBuffers());
 
 		builder.bindAttributeLocation(10, "mc_Entity");
 		builder.bindAttributeLocation(11, "mc_midTexCoord");
@@ -228,7 +246,7 @@ public class ShaderPipeline {
 	}
 
 	public void destroy() {
-		destroyPasses(basic, textured, texturedLit, skyBasic, skyTextured, clouds, terrain, translucent, weather);
+		destroyPasses(basic, textured, texturedLit, skyBasic, skyTextured, clouds, terrain, translucent, weather, shadows);
 		clearAltBuffers.destroy();
 		clearMainBuffers.destroy();
 		baseline.destroy();
@@ -313,6 +331,16 @@ public class ShaderPipeline {
 		baseline.bind();
 		GlStateManager.bindTexture(renderTargets.getDepthTextureNoTranslucents().getTextureId());
 		GL20C.glCopyTexImage2D(GL20C.GL_TEXTURE_2D, 0, GL20C.GL_DEPTH_COMPONENT, 0, 0, renderTargets.getCurrentWidth(), renderTargets.getCurrentHeight(), 0);
+	}
+
+	public void copyCurrentShadowTextures() {
+		shadowBuffer.bind();
+		GlStateManager.bindTexture(renderTargets.getShadowTexture().getTextureId());
+		GL20C.glCopyTexImage2D(GL20C.GL_TEXTURE_2D, 0, GL20C.GL_DEPTH_COMPONENT, 0, 0, renderTargets.getCurrentWidth(), renderTargets.getCurrentHeight(), 0);
+		GlStateManager.bindTexture(renderTargets.getShadowTextureNoTranslucents().getTextureId());
+		GL20C.glCopyTexImage2D(GL20C.GL_TEXTURE_2D, 0, GL20C.GL_DEPTH_COMPONENT, 0, 0, renderTargets.getCurrentWidth(), renderTargets.getCurrentHeight(), 0);
+		//GlStateManager.bindTexture(renderTargets.getShadowColor().getTextureId());
+		//GL20C.glCopyTexImage2D(GL20C.GL_TEXTURE_2D, 0, GL20C.GL_COLOR, 0, 0, renderTargets.getCurrentWidth(), renderTargets.getCurrentHeight(), 0);
 	}
 
 	public void beginClouds() {
@@ -437,6 +465,20 @@ public class ShaderPipeline {
 	}
 
 	public void endParticles() {
+		end();
+	}
+
+	public void beginShadows() {
+		if (shadows == null) {
+			return;
+		}
+		shadows.use();
+
+		setupAttributes(shadows);
+	}
+
+	public void endShadows() {
+		//System.out.println("ENDING SHADOWS");
 		end();
 	}
 

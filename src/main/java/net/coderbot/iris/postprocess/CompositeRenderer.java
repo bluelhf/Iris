@@ -1,14 +1,12 @@
 package net.coderbot.iris.postprocess;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.coderbot.iris.Iris;
 import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
 import net.coderbot.iris.gl.program.Program;
 import net.coderbot.iris.gl.program.ProgramBuilder;
@@ -117,6 +115,10 @@ public class CompositeRenderer {
 		Framebuffer main = MinecraftClient.getInstance().getFramebuffer();
 		renderTargets.resizeIfNeeded(main.textureWidth, main.textureHeight);
 
+		int shadowAttachment = renderTargets.getShadowTexture().getTextureId();
+		int shadowAttachmentNoTranslucents = renderTargets.getShadowTextureNoTranslucents().getTextureId();
+		int shadowColorAttachment = renderTargets.getShadowColor().getTextureId();
+
 		int depthAttachment = renderTargets.getDepthTexture().getTextureId();
 		int depthAttachmentNoTranslucents = renderTargets.getDepthTextureNoTranslucents().getTextureId();
 
@@ -135,6 +137,11 @@ public class CompositeRenderer {
 			// Note: Since we haven't rendered the hand yet, this won't contain any handheld items.
 			// Once we start rendering the hand before composite content, this will need to be addressed.
 			bindTexture(PostProcessUniforms.DEPTH_TEX_2, depthAttachmentNoTranslucents);
+
+			bindTexture(PostProcessUniforms.SHADOW_TEX_0, shadowAttachment);
+			bindTexture(PostProcessUniforms.SHADOW_TEX_1, shadowAttachmentNoTranslucents);
+			bindTexture(PostProcessUniforms.SHADOW_COLOR_0, shadowAttachment);
+			bindTexture(PostProcessUniforms.SHADOW_COLOR_1, shadowAttachment);
 
 			bindRenderTarget(PostProcessUniforms.COLOR_TEX_0, renderTargets.get(0), renderPass.stageReadsFromAlt[0]);
 			bindRenderTarget(PostProcessUniforms.COLOR_TEX_1, renderTargets.get(1), renderPass.stageReadsFromAlt[1]);
@@ -174,6 +181,14 @@ public class CompositeRenderer {
 		RenderSystem.bindTexture(0);
 		RenderSystem.activeTexture(GL15C.GL_TEXTURE0 + PostProcessUniforms.DEFAULT_COLOR);
 		RenderSystem.bindTexture(0);
+		RenderSystem.activeTexture(GL15C.GL_TEXTURE0 + PostProcessUniforms.SHADOW_TEX_0);
+		RenderSystem.bindTexture(0);
+		RenderSystem.activeTexture(GL15C.GL_TEXTURE0 + PostProcessUniforms.SHADOW_TEX_1);
+		RenderSystem.bindTexture(0);
+		RenderSystem.activeTexture(GL15C.GL_TEXTURE0 + PostProcessUniforms.SHADOW_COLOR_0);
+		RenderSystem.bindTexture(0);
+		RenderSystem.activeTexture(GL15C.GL_TEXTURE0 + PostProcessUniforms.SHADOW_COLOR_1);
+		RenderSystem.bindTexture(0);
 	}
 
 	private static void bindRenderTarget(int textureUnit, RenderTarget target, boolean readFromAlt) {
@@ -201,7 +216,7 @@ public class CompositeRenderer {
 		}
 
 		CommonUniforms.addCommonUniforms(builder, source.getParent().getIdMap());
-		PostProcessUniforms.addPostProcessUniforms(builder, this);
+		PostProcessUniforms.addPostProcessUniforms(builder, Optional.of(this));
 
 		return new Pair<>(builder.build(), source.getDirectives());
 	}

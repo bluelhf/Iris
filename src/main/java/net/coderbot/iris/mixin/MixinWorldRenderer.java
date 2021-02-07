@@ -2,8 +2,14 @@ package net.coderbot.iris.mixin;
 
 import net.coderbot.iris.HorizonRenderer;
 import net.coderbot.iris.Iris;
+import net.coderbot.iris.layer.GbufferProgram;
+import net.coderbot.iris.layer.GbufferPrograms;
+import net.coderbot.iris.math.Transformations;
 import net.coderbot.iris.uniforms.CapturedRenderingState;
+import net.minecraft.client.world.ClientWorld;
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Slice;
@@ -28,18 +34,25 @@ public class MixinWorldRenderer {
 	private static final String RENDER_LAYER = "renderLayer(Lnet/minecraft/client/render/RenderLayer;Lnet/minecraft/client/util/math/MatrixStack;DDD)V";
 	private static final String RENDER_CLOUDS = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;FDDD)V";
 
+	@Shadow
+	private ClientWorld world;
+
 	@Inject(method = RENDER, at = @At("HEAD"))
 	private void iris$beginWorldRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo callback) {
+		this.setupShadows(new MatrixStack(), tickDelta);
 		CapturedRenderingState.INSTANCE.setGbufferModelView(matrices.peek().getModel());
 		CapturedRenderingState.INSTANCE.setGbufferProjection(gameRenderer.getBasicProjectionMatrix(camera, tickDelta, true));
 		CapturedRenderingState.INSTANCE.setTickDelta(tickDelta);
 		Iris.getPipeline().beginWorldRender();
+		GbufferPrograms.useProgram(GbufferProgram.SHADOW);
+		Iris.getPipeline().endShadows();
 	}
 
 	@Inject(method = RENDER, at = @At("RETURN"))
 	private void iris$endWorldRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo callback) {
 		Iris.getPipeline().endWorldRender();
 		Iris.getCompositeRenderer().renderAll();
+		Iris.getPipeline().copyCurrentShadowTextures();
 	}
 
 	// TODO: end sky
@@ -128,5 +141,18 @@ public class MixinWorldRenderer {
 	@Inject(method = RENDER, at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/WorldRenderer;transparencyShader:Lnet/minecraft/client/gl/ShaderEffect;"))
 	private void iris$copyCurrentDepthTexture(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo callback) {
 		Iris.getPipeline().copyCurrentDepthTexture();
+	}
+
+	private void setupShadows(MatrixStack matrices, float tickDelta) {
+		matrices.push();
+		Matrix4f matrix = matrices.peek().getModel();
+		matrix.loadIdentity();
+		Transformations.toSunAngle(matrix, this.world.getSkyAngle(tickDelta));
+		CapturedRenderingState.INSTANCE.setShadowModelView(matrix);
+		//matrix.loadIdentity();
+		//matrix.multiply(Transformations.orthoProjection());
+		matrix.loadIdentity();
+		CapturedRenderingState.INSTANCE.setShadowProjection(matrix);
+		matrices.pop();
 	}
 }

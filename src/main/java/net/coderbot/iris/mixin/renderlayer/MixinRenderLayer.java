@@ -54,6 +54,9 @@ public class MixinRenderLayer implements ProgramRenderLayer {
 	@Unique
 	private static RenderLayer iris$LINES;
 
+	@Unique
+	private static RenderLayer iris$SHADOWS;
+
 	@Shadow @Final @Mutable private static RenderLayer LEASH;
 	@Shadow @Final @Mutable private static RenderLayer ARMOR_GLINT;
 	@Shadow @Final @Mutable private static RenderLayer ARMOR_ENTITY_GLINT;
@@ -85,6 +88,7 @@ public class MixinRenderLayer implements ProgramRenderLayer {
 		// TODO: figure out how to assign to RenderLayer.LINES
 		// We cannot use @Shadow easily because the type of the field is a package-private class
 		iris$LINES = wrap("iris:lines", RenderLayer.LINES, GbufferProgram.BASIC);
+		iris$SHADOWS = wrap("iris:shadows", RenderLayer.getTranslucent(), GbufferProgram.SHADOW);
 
 		// TODO: SOLID / CUTOUT_MIPPED / CUTOUT are used for falling blocks and blocks being pushed by pistons
 		// Should they still be rendered in terrain?

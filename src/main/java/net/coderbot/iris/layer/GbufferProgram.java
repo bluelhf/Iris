@@ -8,6 +8,7 @@ public enum GbufferProgram {
 	SKY_TEXTURED,
 	CLOUDS,
 	TERRAIN,
+	SHADOW,
 	TRANSLUCENT_TERRAIN,
 	DAMAGED_BLOCKS,
 	BLOCK_ENTITIES,
@@ -17,5 +18,5 @@ public enum GbufferProgram {
 	ARMOR_GLINT,
 	EYES,
 	HAND,
-	WEATHER
+	WEATHER,
 }

@@ -17,10 +17,11 @@ public class RenderTargets {
 
 	private final RenderTarget[] targets;
 	private final DepthTexture depthTexture;
-	private final DepthTexture depthNoTranslucent;
+	private final DepthTexture depthNoTranslucents;
 
 	private final DepthTexture shadowTexture;
-	private final DepthTexture shadowNoTranslucent;
+	private final DepthTexture shadowNoTranslucents;
+	private final ColorTexture shadowColor;
 
 	private int cachedWidth;
 	private int cachedHeight;
@@ -42,9 +43,10 @@ public class RenderTargets {
 		}
 
 		this.depthTexture = new DepthTexture(width, height);
-		this.depthNoTranslucent = new DepthTexture(width, height);
+		this.depthNoTranslucents = new DepthTexture(width, height);
 		this.shadowTexture = new DepthTexture(width, height);
-		this.shadowNoTranslucent = new DepthTexture(width, height);
+		this.shadowNoTranslucents = new DepthTexture(width, height);
+		this.shadowColor = new ColorTexture(width, height);
 
 		this.cachedWidth = width;
 		this.cachedHeight = height;
@@ -65,7 +67,7 @@ public class RenderTargets {
 		}
 
 		// depthTexture.destroy();
-		depthNoTranslucent.destroy();
+		depthNoTranslucents.destroy();
 	}
 
 	public RenderTarget get(int index) {
@@ -77,7 +79,19 @@ public class RenderTargets {
 	}
 
 	public DepthTexture getDepthTextureNoTranslucents() {
-		return depthNoTranslucent;
+		return depthNoTranslucents;
+	}
+
+	public DepthTexture getShadowTexture() {
+		return shadowTexture;
+	}
+
+	public DepthTexture getShadowTextureNoTranslucents() {
+		return shadowNoTranslucents;
+	}
+
+	public ColorTexture getShadowColor() {
+		return shadowColor;
 	}
 
 	public void resizeIfNeeded(int newWidth, int newHeight) {
@@ -95,7 +109,11 @@ public class RenderTargets {
 		}
 
 		depthTexture.resize(newWidth, newHeight);
-		depthNoTranslucent.resize(newWidth, newHeight);
+		depthNoTranslucents.resize(newWidth, newHeight);
+
+		shadowTexture.resize(newWidth, newHeight);
+		shadowNoTranslucents.resize(newWidth, newHeight);
+		shadowColor.resize(newWidth, newHeight);
 	}
 
 	public GlFramebuffer createFramebufferWritingToMain(int[] drawBuffers) {
@@ -111,7 +129,7 @@ public class RenderTargets {
 
 		Arrays.fill(stageWritesToAlt, clearsAlt);
 
-		GlFramebuffer framebuffer =  createColorFramebuffer(stageWritesToAlt, drawBuffers);
+		GlFramebuffer framebuffer = createColorFramebuffer(stageWritesToAlt, drawBuffers);
 
 		framebuffer.addDepthAttachment(this.getDepthTexture().getTextureId());
 
@@ -134,6 +152,19 @@ public class RenderTargets {
 		}
 
 		framebuffer.drawBuffers(drawBuffers);
+
+		return framebuffer;
+	}
+
+	public GlFramebuffer createShadowFramebuffer(int[] drawBuffers) {
+		boolean[] stageWritesToAlt = new boolean[RenderTargets.MAX_RENDER_TARGETS];
+
+		Arrays.fill(stageWritesToAlt, false);
+
+		GlFramebuffer framebuffer = createColorFramebuffer(stageWritesToAlt, drawBuffers);
+
+		framebuffer.addDepthAttachment(this.getShadowTexture().getTextureId());
+		framebuffer.addDepthAttachment(this.getShadowTextureNoTranslucents().getTextureId());
 
 		return framebuffer;
 	}
