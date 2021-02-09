@@ -2,6 +2,7 @@ package net.coderbot.iris.mixin;
 
 import net.coderbot.iris.HorizonRenderer;
 import net.coderbot.iris.Iris;
+import net.coderbot.iris.ShadowTextureRenderer;
 import net.coderbot.iris.layer.GbufferProgram;
 import net.coderbot.iris.layer.GbufferPrograms;
 import net.coderbot.iris.uniforms.CapturedRenderingState;
@@ -38,8 +39,12 @@ public class MixinWorldRenderer {
 	private void iris$beginWorldRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo callback) {
 		CapturedRenderingState.INSTANCE.setGbufferModelView(matrices.peek().getModel());
 		CapturedRenderingState.INSTANCE.setGbufferProjection(gameRenderer.getBasicProjectionMatrix(camera, tickDelta, true));
+		CapturedRenderingState.INSTANCE.setShadowModelView(matrices.peek().getModel());
+		//CapturedRenderingState.INSTANCE.setShadowProjection(Matrix4f.projectionMatrix(1, 1, 0, 0));
 		CapturedRenderingState.INSTANCE.setTickDelta(tickDelta);
 		Iris.getPipeline().beginWorldRender();
+		ShadowTextureRenderer.render(camera, tickDelta);
+		//ShadowTextureRenderer.imsRender(camera, matrices, tickDelta);
 	}
 
 	// Inject a bit early so that we can end our rendering in time.
@@ -47,6 +52,7 @@ public class MixinWorldRenderer {
 	private void iris$endWorldRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo callback) {
 		Iris.getPipeline().endWorldRender();
 		Iris.getCompositeRenderer().renderAll();
+		//ShadowTextureRenderer.render();
 	}
 
 	@Inject(method = RENDER_SKY, at = @At("HEAD"))

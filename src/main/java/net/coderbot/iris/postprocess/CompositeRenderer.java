@@ -120,6 +120,9 @@ public class CompositeRenderer {
 		int depthAttachment = renderTargets.getDepthTexture().getTextureId();
 		int depthAttachmentNoTranslucents = renderTargets.getDepthTextureNoTranslucents().getTextureId();
 
+		int shadowAttachment = renderTargets.getShadowTexture().getTextureId();
+		int shadowAttachmentNoTranslucents = renderTargets.getShadowTextureNoTranslucents().getTextureId();
+
 		for (Pass renderPass : passes) {
 			if (!renderPass.isLastPass) {
 				renderPass.framebuffer.bind();
@@ -135,6 +138,9 @@ public class CompositeRenderer {
 			// Note: Since we haven't rendered the hand yet, this won't contain any handheld items.
 			// Once we start rendering the hand before composite content, this will need to be addressed.
 			bindTexture(PostProcessUniforms.DEPTH_TEX_2, depthAttachmentNoTranslucents);
+
+			bindTexture(PostProcessUniforms.SHADOW_TEX_0, shadowAttachment);
+			bindTexture(PostProcessUniforms.SHADOW_TEX_1, shadowAttachmentNoTranslucents);
 
 			bindRenderTarget(PostProcessUniforms.COLOR_TEX_0, renderTargets.get(0), renderPass.stageReadsFromAlt[0]);
 			bindRenderTarget(PostProcessUniforms.COLOR_TEX_1, renderTargets.get(1), renderPass.stageReadsFromAlt[1]);

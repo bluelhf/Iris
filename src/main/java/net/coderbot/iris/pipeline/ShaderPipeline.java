@@ -47,6 +47,8 @@ public class ShaderPipeline {
 	@Nullable
 	private final Pass terrain;
 	@Nullable
+	private final Pass shadow;
+	@Nullable
 	private final Pass translucent;
 	@Nullable
 	private final Pass damagedBlock;
@@ -86,6 +88,7 @@ public class ShaderPipeline {
 		this.skyTextured = pack.getGbuffersSkyTextured().map(this::createPass).orElse(textured);
 		this.clouds = pack.getGbuffersClouds().map(this::createPass).orElse(textured);
 		this.terrain = pack.getGbuffersTerrain().map(this::createPass).orElse(texturedLit);
+		this.shadow = pack.getShadow().map(this::createPass).orElse(texturedLit);
 		this.translucent = pack.getGbuffersWater().map(this::createPass).orElse(terrain);
 		this.damagedBlock = pack.getGbuffersDamagedBlock().map(this::createPass).orElse(terrain);
 		this.weather = pack.getGbuffersWeather().map(this::createPass).orElse(texturedLit);
@@ -161,6 +164,8 @@ public class ShaderPipeline {
 
 	private Pass getPass(GbufferProgram program) {
 		switch (program) {
+			case SHADOW:
+				return shadow;
 			case TERRAIN:
 				return terrain;
 			case TRANSLUCENT_TERRAIN:
@@ -318,7 +323,7 @@ public class ShaderPipeline {
 	}
 
 	public void destroy() {
-		destroyPasses(basic, textured, texturedLit, skyBasic, skyTextured, clouds, terrain, translucent, weather);
+		destroyPasses(basic, textured, texturedLit, skyBasic, skyTextured, clouds, terrain, translucent, weather, shadow);
 		clearAltBuffers.destroy();
 		clearMainBuffers.destroy();
 		baseline.destroy();
@@ -383,6 +388,10 @@ public class ShaderPipeline {
 		GL20C.glCopyTexImage2D(GL20C.GL_TEXTURE_2D, 0, GL20C.GL_DEPTH_COMPONENT, 0, 0, renderTargets.getCurrentWidth(), renderTargets.getCurrentHeight(), 0);
 	}
 
+	public void copyCurrentShadowTextures() {
+
+	}
+
 	public static GbufferProgram getProgramForSheet(ParticleTextureSheet sheet) {
 		if (sheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE || sheet == ParticleTextureSheet.TERRAIN_SHEET || sheet == ParticleTextureSheet.CUSTOM) {
 			return GbufferProgram.TEXTURED_LIT;
@@ -425,5 +434,9 @@ public class ShaderPipeline {
 
 		isRenderingWorld = false;
 		programStackLog.clear();
+	}
+
+	public RenderTargets getRenderTargets() {
+		return renderTargets;
 	}
 }

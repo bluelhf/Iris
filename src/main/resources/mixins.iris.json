@@ -4,6 +4,7 @@
   "package": "net.coderbot.iris.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
+    "AccessorWorldRenderer",
     "MixinDebugHud",
     "MixinEntityRenderDispatcher",
     "MixinGameRenderer",
@@ -15,6 +16,7 @@
     "fabulous.MixinDisableFabulousGraphics",
     "fabulous.MixinOption",
     "gbuffer.MixinWorldRenderer",
+    "math.MixinMatrix4f",
     "renderlayer.MixinFixEyesTranslucency",
     "renderlayer.MixinRenderLayer",
     "renderlayer.RenderLayerAccessor",

@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.Properties;
 
 import net.coderbot.iris.Iris;
-import net.coderbot.iris.gl.texture.InternalTextureFormat;
 import org.apache.logging.log4j.Level;
 
 public class ShaderPack {
@@ -22,6 +21,7 @@ public class ShaderPack {
 	private final ProgramSource gbuffersTextured;
 	private final ProgramSource gbuffersTexturedLit;
 	private final ProgramSource gbuffersTerrain;
+	private final ProgramSource shadow;
 	private final ProgramSource gbuffersDamagedBlock;
 	private final ProgramSource gbuffersWater;
 	private final ProgramSource gbuffersSkyBasic;
@@ -50,6 +50,7 @@ public class ShaderPack {
 		this.gbuffersTextured = readProgramSource(root, "gbuffers_textured", this, shaderProperties);
 		this.gbuffersTexturedLit = readProgramSource(root, "gbuffers_textured_lit", this, shaderProperties);
 		this.gbuffersTerrain = readProgramSource(root, "gbuffers_terrain", this, shaderProperties);
+		this.shadow = readProgramSource(root, "shadow", this, shaderProperties);
 		this.gbuffersDamagedBlock = readProgramSource(root, "gbuffers_damagedblock", this, shaderProperties);
 		this.gbuffersWater = readProgramSource(root, "gbuffers_water", this, shaderProperties);
 		this.gbuffersSkyBasic = readProgramSource(root, "gbuffers_skybasic", this, shaderProperties);
@@ -113,6 +114,10 @@ public class ShaderPack {
 
 	public Optional<ProgramSource> getGbuffersTerrain() {
 		return gbuffersTerrain.requireValid();
+	}
+
+	public Optional<ProgramSource> getShadow() {
+		return shadow.requireValid();
 	}
 
 	public Optional<ProgramSource> getGbuffersDamagedBlock() {

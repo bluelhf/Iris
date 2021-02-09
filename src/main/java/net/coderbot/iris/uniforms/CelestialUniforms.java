@@ -57,7 +57,7 @@ public final class CelestialUniforms {
 		return getCelestialPosition(-100.0F);
 	}
 
-	private static Vector4f getShadowLightPosition() {
+	public static Vector4f getShadowLightPosition() {
 		return isDay() ? getSunPosition() : getMoonPosition();
 	}
 

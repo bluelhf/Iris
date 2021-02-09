@@ -17,6 +17,12 @@ public class PostProcessUniforms {
 	public static final int DEPTH_TEX_1 = 11;
 	public static final int DEPTH_TEX_2 = 12;
 
+	public static final int SHADOW_TEX_0 = 4;
+	public static final int SHADOW_TEX_1 = 5;
+
+	public static final int SHADOW_COLOR_0 = 13;
+	public static final int SHADOW_COLOR_1 = 14;
+
 	public static final int NOISE_TEX = 15;
 
 	public static final int DEFAULT_COLOR = COLOR_TEX_0;
@@ -42,11 +48,11 @@ public class PostProcessUniforms {
 		// Check if the "watershadow" uniform is active. If so, the "shadow" texture will have a separate texture unit
 		boolean waterShadowEnabled = builder.location("watershadow").isPresent();
 
-		addSampler(builder, waterShadowEnabled ? 5 : 4, "shadow");
+		addSampler(builder, waterShadowEnabled ? SHADOW_TEX_1 : SHADOW_TEX_0, "shadow");
 
-		addSampler(builder, 5, "shadowtex1");
-		addSampler(builder, 13, "shadowcolor", "shadowcolor0");
-		addSampler(builder, 14, "shadowcolor1");
+		addSampler(builder, SHADOW_TEX_1, "shadowtex1");
+		addSampler(builder, SHADOW_COLOR_0, "shadowcolor", "shadowcolor0");
+		addSampler(builder, SHADOW_COLOR_1, "shadowcolor1");
 
 		// Depth
 		addSampler(builder, DEFAULT_DEPTH, "gdepthtex", "depthtex0");

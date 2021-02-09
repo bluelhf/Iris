@@ -3,6 +3,7 @@ package net.coderbot.iris.rendertarget;
 import java.util.Arrays;
 
 import net.coderbot.iris.Iris;
+import net.coderbot.iris.ShadowTextureRenderer;
 import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
 import net.coderbot.iris.gl.texture.InternalTextureFormat;
 import net.coderbot.iris.shaderpack.ShaderPack;
@@ -17,7 +18,9 @@ public class RenderTargets {
 
 	private final RenderTarget[] targets;
 	private final DepthTexture depthTexture;
-	private final DepthTexture noTranslucents;
+	private final DepthTexture depthNoTranslucents;
+	private final DepthTexture shadowTexture;
+	private final DepthTexture shadowNoTranslucents;
 
 	private int cachedWidth;
 	private int cachedHeight;
@@ -39,7 +42,10 @@ public class RenderTargets {
 		}
 
 		this.depthTexture = new DepthTexture(width, height);
-		this.noTranslucents = new DepthTexture(width, height);
+		this.depthNoTranslucents = new DepthTexture(width, height);
+		//TODO: Not hardcode shadowtex resolution
+		this.shadowTexture = new DepthTexture(ShadowTextureRenderer.SHADOW_TEX_WIDTH, ShadowTextureRenderer.SHADOW_TEX_WIDTH);
+		this.shadowNoTranslucents = new DepthTexture(ShadowTextureRenderer.SHADOW_TEX_WIDTH, ShadowTextureRenderer.SHADOW_TEX_WIDTH);
 
 		this.cachedWidth = width;
 		this.cachedHeight = height;
@@ -60,7 +66,7 @@ public class RenderTargets {
 		}
 
 		// depthTexture.destroy();
-		noTranslucents.destroy();
+		depthNoTranslucents.destroy();
 	}
 
 	public RenderTarget get(int index) {
@@ -72,7 +78,15 @@ public class RenderTargets {
 	}
 
 	public DepthTexture getDepthTextureNoTranslucents() {
-		return noTranslucents;
+		return depthNoTranslucents;
+	}
+
+	public DepthTexture getShadowTexture() {
+		return shadowTexture;
+	}
+
+	public DepthTexture getShadowTextureNoTranslucents() {
+		return shadowNoTranslucents;
 	}
 
 	public void resizeIfNeeded(int newWidth, int newHeight) {
@@ -90,7 +104,7 @@ public class RenderTargets {
 		}
 
 		depthTexture.resize(newWidth, newHeight);
-		noTranslucents.resize(newWidth, newHeight);
+		depthNoTranslucents.resize(newWidth, newHeight);
 	}
 
 	public GlFramebuffer createFramebufferWritingToMain(int[] drawBuffers) {
