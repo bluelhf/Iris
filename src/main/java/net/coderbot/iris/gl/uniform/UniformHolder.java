@@ -1,15 +1,15 @@
 package net.coderbot.iris.gl.uniform;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
+
 import java.util.OptionalInt;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
-
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.client.util.math.Vector4f;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
 
 public interface UniformHolder {
 	UniformHolder addUniform(UniformUpdateFrequency updateFrequency, Uniform uniform);
@@ -58,7 +58,7 @@ public interface UniformHolder {
 		return this;
 	}
 
-	default UniformHolder uniform3d(UniformUpdateFrequency updateFrequency, String name, Supplier<Vec3d> value) {
+	default UniformHolder uniform3d(UniformUpdateFrequency updateFrequency, String name, Supplier<Vector3d> value) {
 		location(name).ifPresent(id -> addUniform(updateFrequency, Vector3Uniform.converted(id, value)));
 
 		return this;

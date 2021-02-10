@@ -5,8 +5,7 @@ import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
 import java.util.function.Supplier;
 
 import net.coderbot.iris.gl.uniform.UniformHolder;
-
-import net.minecraft.util.math.Matrix4f;
+import org.joml.Matrix4f;
 
 public final class MatrixUniforms {
 	private MatrixUniforms() {
@@ -33,8 +32,8 @@ public final class MatrixUniforms {
 
 		@Override
 		public Matrix4f get() {
-			// PERF: Don't copy + allocate this matrix every time?
-			Matrix4f copy = parent.get().copy();
+			// PERF: Don't copy + allocate these matrices every time?
+			Matrix4f copy = parent.get().get(new Matrix4f());
 
 			copy.invert();
 
@@ -54,8 +53,8 @@ public final class MatrixUniforms {
 		@Override
 		public Matrix4f get() {
 			// PERF: Don't copy + allocate these matrices every time?
-			Matrix4f copy = parent.get().copy();
-			Matrix4f previous = this.previous.copy();
+			Matrix4f copy = parent.get().get(new Matrix4f());
+			Matrix4f previous = this.previous.get(new Matrix4f());
 
 			this.previous = copy;
 

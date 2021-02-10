@@ -26,6 +26,9 @@ dependencies {
 
 	// Required by fabric-lifecycle-events-v1
 	includeFabricApiModule "fabric-api-base"
+
+	// Used for a more robust math implementation
+	implementation "org.joml:joml:1.10.0"
 }
 
 def includeFabricApiModule(String moduleName) {

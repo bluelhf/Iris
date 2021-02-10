@@ -7,8 +7,9 @@ import java.util.function.Supplier;
 
 import net.coderbot.iris.gl.uniform.UniformHolder;
 
+import net.coderbot.iris.util.Abstractions;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.Vec3d;
+import org.joml.Vector3d;
 
 /**
  * @see <a href="https://github.com/IrisShaders/ShaderDoc/blob/master/uniforms.md#celestial-bodies">Uniforms: Camera</a>
@@ -31,16 +32,16 @@ public class CameraUniforms {
 		return client.options.viewDistance * 16;
 	}
 
-	private static Vec3d getCameraPosition() {
-		return client.gameRenderer.getCamera().getPos();
+	private static Vector3d getCameraPosition() {
+		return Abstractions.getClientCameraPos();
 	}
 
-	private static class PreviousCameraPosition implements Supplier<Vec3d> {
-		private Vec3d previousCameraPosition = new Vec3d(0.0, 0.0, 0.0);
+	private static class PreviousCameraPosition implements Supplier<Vector3d> {
+		private Vector3d previousCameraPosition = new Vector3d(0.0, 0.0, 0.0);
 
 		@Override
-		public Vec3d get() {
-			Vec3d previous = previousCameraPosition;
+		public Vector3d get() {
+			Vector3d previous = previousCameraPosition;
 
 			previousCameraPosition = getCameraPosition();
 

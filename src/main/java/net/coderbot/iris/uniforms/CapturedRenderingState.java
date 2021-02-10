@@ -2,7 +2,7 @@ package net.coderbot.iris.uniforms;
 
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Matrix4f;
+import org.joml.Matrix4f;
 
 public class CapturedRenderingState {
 	public static final CapturedRenderingState INSTANCE = new CapturedRenderingState();
@@ -21,7 +21,7 @@ public class CapturedRenderingState {
 	}
 
 	public void setGbufferModelView(Matrix4f gbufferModelView) {
-		this.gbufferModelView = gbufferModelView.copy();
+		this.gbufferModelView = gbufferModelView.get(new Matrix4f());
 	}
 
 	public Matrix4f getGbufferProjection() {
@@ -29,7 +29,7 @@ public class CapturedRenderingState {
 	}
 
 	public void setGbufferProjection(Matrix4f gbufferProjection) {
-		this.gbufferProjection = gbufferProjection.copy();
+		this.gbufferProjection = gbufferProjection.get(new Matrix4f());
 	}
 
 	public void setTickDelta(float tickDelta) {

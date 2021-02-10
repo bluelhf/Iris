@@ -6,11 +6,11 @@ import java.util.Objects;
 
 import net.coderbot.iris.gl.uniform.UniformHolder;
 
+import net.coderbot.iris.util.Utilities;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Matrix4f;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 /**
  * @see <a href="https://github.com/IrisShaders/ShaderDoc/blob/master/uniforms.md#celestial-bodies">Uniforms: Celestial bodies</a>
@@ -64,14 +64,14 @@ public final class CelestialUniforms {
 	private static Vector4f getCelestialPosition(float y) {
 		Vector4f position = new Vector4f(0.0F, y, 0.0F, 0.0F);
 
-		Matrix4f celestial = CapturedRenderingState.INSTANCE.getGbufferModelView().copy();
+		Matrix4f celestial = CapturedRenderingState.INSTANCE.getGbufferModelView().get(new Matrix4f());
 
 		// This is the same transformation applied by renderSky, however, it's been moved to here.
 		// This is because we need the result of it before it's actually performed in vanilla.
-		celestial.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90.0F));
-		celestial.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(getSkyAngle() * 360.0F));
+		celestial.mul(Utilities.QUATERNION.rotateY((float)Math.toRadians(-90.0F)).get(new Matrix4f()));
+		celestial.mul(Utilities.QUATERNION.rotateY((float)Math.toRadians(getSkyAngle() * 360.0F)).get(new Matrix4f()));
 
-		position.transform(celestial);
+		position.mulTranspose(celestial);
 
 		return position;
 	}
@@ -80,14 +80,14 @@ public final class CelestialUniforms {
 		Vector4f upVector = new Vector4f(0.0F, 100.0F, 0.0F, 0.0F);
 
 		// Get the current GBuffer model view matrix, since that is the basis of the celestial model view matrix
-		Matrix4f preCelestial = CapturedRenderingState.INSTANCE.getGbufferModelView().copy();
+		Matrix4f preCelestial = CapturedRenderingState.INSTANCE.getGbufferModelView().get(new Matrix4f());
 
 		// Apply the fixed -90.0F degrees rotation to mirror the same transformation in renderSky.
 		// But, notably, skip the rotation by the skyAngle.
-		preCelestial.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90.0F));
+		preCelestial.mul(Utilities.QUATERNION.rotateY((float)Math.toRadians(-90.0F)).get(new Matrix4f()));
 
 		// Use this matrix to transform the vector.
-		upVector.transform(preCelestial);
+		upVector.mulTranspose(preCelestial);
 
 		return upVector;
 	}

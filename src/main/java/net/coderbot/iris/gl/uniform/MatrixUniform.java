@@ -3,10 +3,11 @@ package net.coderbot.iris.gl.uniform;
 import java.nio.FloatBuffer;
 import java.util.function.Supplier;
 
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.util.math.Matrix4f;
+
 
 public class MatrixUniform extends Uniform {
 	private FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
@@ -25,9 +26,9 @@ public class MatrixUniform extends Uniform {
 		Matrix4f newValue = value.get();
 
 		if (!newValue.equals(cachedValue)) {
-			cachedValue = newValue.copy();
+			cachedValue = newValue.get(new Matrix4f());
 
-			cachedValue.writeToBuffer(buffer);
+			cachedValue.get(buffer);
 			buffer.rewind();
 
 			GL21.glUniformMatrix4fv(location, false, buffer);
