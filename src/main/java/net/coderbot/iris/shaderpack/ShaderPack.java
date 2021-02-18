@@ -22,6 +22,7 @@ import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
+import org.jetbrains.annotations.Nullable;
 
 public class ShaderPack {
 	private final PackDirectives packDirectives;
@@ -48,6 +49,7 @@ public class ShaderPack {
 	private final ShaderProperties shaderProperties;
 	private final Map<String, Map<String, String>> langMap;
 
+<<<<<<< HEAD
 	public ShaderPack(Path root) throws IOException {
 		this.shaderProperties = loadProperties(root, "shaders.properties")
 			.map(ShaderProperties::new)
@@ -56,6 +58,11 @@ public class ShaderPack {
 
 		config.load();
 
+=======
+	public static final ShaderPack NO_OP;
+
+	public ShaderPack(@Nullable Path root) throws IOException {
+>>>>>>> 9866dd984d8aef419396650a2cb85eb79681cda2
 		this.packDirectives = new PackDirectives();
 
 		this.gbuffersBasic = readProgramSource(root, "gbuffers_basic", this);
@@ -202,6 +209,10 @@ public class ShaderPack {
 		String vertexSource = null;
 		String fragmentSource = null;
 
+		if(root == null) {
+			return new ProgramSource(program, null, null, pack);
+		}
+
 		try {
 			Path vertexPath = root.resolve(program + ".vsh");
 			vertexSource = readFile(vertexPath);
@@ -238,6 +249,8 @@ public class ShaderPack {
 	}
 
 	private Map<String, Map<String, String>> parseLangEntries(Path root) throws IOException {
+		if(root == null) return new HashMap<>();
+
 		Path langFolderPath = root.resolve("lang");
 		Map<String, Map<String, String>> allLanguagesMap = new HashMap<>();
 
@@ -318,5 +331,16 @@ public class ShaderPack {
 				return Optional.empty();
 			}
 		}
+	}
+
+	static {
+		ShaderPack s;
+		try {
+			s = new ShaderPack(null);
+		} catch (IOException e) {
+			e.printStackTrace();
+			s = null;
+		}
+		NO_OP = s;
 	}
 }

@@ -42,7 +42,8 @@ public class ShaderPackListWidget extends ShaderScreenEntryListWidget<ShaderPack
         try {
             Path path = Iris.getShaderPackDir();
             int index = 0;
-            addEntry(index, "(internal)");
+            addEntry(index, "(off)");
+			addEntry(index += 1, "(internal)");
             for(Path folder : Files.walk(path, 1).filter(p -> {
                 if(Files.isDirectory(p)) {
                     return Files.exists(p.resolve("shaders"));
@@ -55,7 +56,7 @@ public class ShaderPackListWidget extends ShaderScreenEntryListWidget<ShaderPack
                 return false;
             }).collect(Collectors.toList())) {
                 String name = folder.getFileName().toString();
-                if(!name.equals("(internal)")) {
+                if(!name.equals("(internal)") && !name.equals("(off)") ) {
                     index++;
                     addEntry(index, name);
                 }

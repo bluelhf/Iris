@@ -64,22 +64,31 @@ public class IrisConfig {
 	}
 
 	/**
+	 * returns whether or not the current shaderpack is no-op
+	 *
+	 * @return if shaders should be off (using no-op shaders)
+	 */
+	public boolean isNoOp() {
+		return shaderPackName == null || shaderPackName.equals("(off)");
+	}
+
+	/**
 	 * returns whether or not the current shaderpack is internal
 	 *
 	 * @return if the shaderpack is internal
 	 */
 	public boolean isInternal() {
-		return shaderPackName == null;
+		return shaderPackName != null && shaderPackName.equals("(internal)");
 	}
 
 	/**
 	 * Returns the name of the current shaderpack
 	 *
-	 * @return shaderpack name. If internal it returns "(internal)"
+	 * @return shaderpack name. If internal it returns "(internal)", and if shaders are off it returns "(off)".
 	 */
 	public String getShaderPackName() {
 		if (shaderPackName == null) {
-			return "(internal)";
+			return "(off)";
 		}
 
 		return shaderPackName;
@@ -154,7 +163,7 @@ public class IrisConfig {
 		uiTheme = properties.getProperty("uiTheme", this.uiTheme);
 		condenseShaderConfig = Boolean.parseBoolean(properties.getProperty("condenseShaderConfig"));
 
-		if (shaderPackName != null && shaderPackName.equals("(internal)")) {
+		if (shaderPackName != null && shaderPackName.equals("(off)")) {
 			shaderPackName = null;
 		}
 	}
