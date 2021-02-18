@@ -173,7 +173,7 @@ public class Iris implements ClientModInitializer {
 
 	private static void loadInternalShaderpack() {
 		Path root = FabricLoader.getInstance().getModContainer("iris")
-			.orElseThrow(() -> new RuntimeException("Failed to get the mod container for Iris!")).getRootPath();
+				.orElseThrow(() -> new RuntimeException("Failed to get the mod container for Iris!")).getRootPath();
 
 		try {
 			currentPack = new ShaderPack(root.resolve("shaders"));

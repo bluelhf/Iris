@@ -10,7 +10,7 @@ public class PackDirectives {
 
 	public IntList getBuffersToBeCleared() {
 		// TODO: Hardcoding for sildurs: should clear all buffers unless otherwise specified, but we skip buffer 7
-		return new IntArrayList(new int[]{0, 1, 2, 3, 4, 5, 6});
+		return new IntArrayList(new int[]{0, 1, 2, 3, 4, 5, 6, 7});
 	}
 
 	public InternalTextureFormat[] getRequestedBufferFormats() {
