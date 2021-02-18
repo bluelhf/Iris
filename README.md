@@ -1,3 +1,16 @@
+### About this EXPERIMENTAL Branch
+This branch includes the following changes:
+- Shader selection GUI with support for below (FoundationGames)
+- Shader option configuration (OverlordsIII)
+- Ability to disable shaders altogether (FoundationGames)
+- Shader packs loading and reloading for respective dimensions (FoundationGames)
+- Some more shader uniforms for sky and weather (OverlordsIII)
+- Support for 1.17 Caves and Cliffs Snapshots (FoundationGames)
+
+**THESE CHANGES ARE EXPERIMENTAL AND ANY ISSUES/BUGS MUST BE TESTED ON** IrisShaders' `trunk` **BRANCH BEFORE BEING REPORTED**
+<br/>
+This branch is not aimed to be merged into Iris's trunk, ever.
+
 # Iris
 
 *A new shaders mod for Minecraft intended to be compatible with existing ShadersMod/Optifine shaders*

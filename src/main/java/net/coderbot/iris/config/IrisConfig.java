@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import net.minecraft.util.Identifier;
+
 /**
  * A class dedicated to storing the config values of shaderpacks. Right now it only stores the path to the current shaderpack
  */
@@ -44,7 +46,12 @@ public class IrisConfig {
 	 */
 	private boolean condenseShaderConfig;
 
-	private Path propertiesPath;
+	/**
+	 * For legacy shader pack support, this maps dimension Identifiers to legacy raw ids defined in shaders
+	 */
+	private final Map<Identifier, Integer> dimensionOverrides = new HashMap<>();
+
+	private final Path propertiesPath;
 
 	public IrisConfig() {
 		shaderPackName = null;
@@ -165,6 +172,20 @@ public class IrisConfig {
 
 		if (shaderPackName != null && shaderPackName.equals("(off)")) {
 			shaderPackName = null;
+		}
+
+		this.dimensionOverrides.clear();
+		for(String s : properties.stringPropertyNames()) {
+			if(s.startsWith("dimension.")) {
+				s = s.replace("dimension.", "");
+				Identifier id = Identifier.tryParse(s);
+				if(id != null) {
+					try {
+						int r = Integer.parseInt(properties.getProperty(s));
+						this.dimensionOverrides.put(id, r);
+					} catch(NumberFormatException ignored) {}
+				}
+			}
 		}
 	}
 
