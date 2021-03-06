@@ -3,6 +3,7 @@ package net.coderbot.iris.mixin;
 import net.coderbot.iris.gui.TransparentBackgroundScreen;
 import net.coderbot.iris.uniforms.CapturedRenderingState;
 import net.coderbot.iris.uniforms.SystemTimeUniforms;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
