@@ -39,9 +39,9 @@
         "fabric-lifecycle-events-v1": ">=1.2.0"
     },
 
-    "breaks": {
-        "canvas": "*",
-        "optifabric": "*",
-        "sodium": "*"
-    }
+  "breaks": {
+    "canvas": "*",
+    "optifabric": "*",
+    "physicsmod": "*"
+  }
 }
